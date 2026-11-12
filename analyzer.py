@@ -2,6 +2,15 @@ import re
 from getpass import getpass
 
 
+def check_length(password):
+    # I chose 8 because longer passwords are harder to guess,
+    # and current guidance favors length over complexity.
+    if len(password) >= 8:
+        return (True, "Good length")
+    else:
+        return (False, "Too short, use at least 12 characters")
+
+
 def check_character_types(password):
     """Return which character categories the password contains."""
     return {
@@ -15,6 +24,10 @@ def check_character_types(password):
 def main():
     password = getpass("Enter a password to analyze: ")
     print(f"Length: {len(password)}")
+
+    is_long_enough, match = check_length(password)
+    print(match)
+
     for category, present in check_character_types(password).items():
         print(f"{category}: {'yes' if present else 'no'}")
 
