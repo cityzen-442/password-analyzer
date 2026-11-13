@@ -55,7 +55,15 @@ The `TestRealWorldRegressions` tests record passwords that fooled earlier versio
 
 Test with made-up passwords only. Never enter a real password you use anywhere.
 
-## Possible next steps
+## Comparison with zxcvbn
 
-- Compare results with the [`zxcvbn`](https://github.com/dropbox/python-zxcvbn) library
-- Support a larger wordlist
+I ran eight test passwords through this analyzer and Dropbox's `zxcvbn`.
+
+- **Agreement:** both rate `password`, `hello123` and `Summer2024!` as weak.
+- **zxcvbn is better** at `- **zxcvbn exposed a bug** in `helloworldhelloworld`: repeated parts inflated my entropy. Fixed by collapsing repeats before measuring entropy, with regression tests.
+- **This analyzer is better** at predictable structure: `nforblaise58092@` gets 4/4 from zxcvbn unless it is given the name via `user_inputs`, while my structure and personal-info checks flag it.
+- **zxcvbn is more generous with passphrases** and appears to penalize non-adjacent repeated words less (`plug-treats-plug-us-plug`).
+- zxcvbn estimates unrecognised characters at a flat 10 guesses each, so its guess count for truly random strings is far lower than the real figure.
+
+Takeaway: no single scoring method is reliable alone. Combining entropy, pattern checks and personal context works best, and the real defense is a randomly generated password from a password manager.
+Possible next steps

@@ -145,7 +145,26 @@ class TestRealWorldRegressions(unittest.TestCase):
 
     def test_random_passphrase_is_fair(self):
         self.assertEqual(self.score("plum-staple-orbit-violin"), 52)
+class TestRepeatCollapsing(unittest.TestCase):
+    """Bug found by comparing with zxcvbn: repeats inflated entropy."""
 
+    def test_collapse_repeated_chunk(self):
+        self.assertEqual(analyzer.collapse_repeats("helloworldhelloworld"), "helloworld")
+
+    def test_collapse_run_of_characters(self):
+        self.assertEqual(analyzer.collapse_repeats("xaaaay"), "xay")
+
+    def test_random_password_unchanged(self):
+        self.assertEqual(analyzer.collapse_repeats("kT9#mPz2vL!q"), "kT9#mPz2vL!q")
+
+    def test_repeat_adds_no_entropy(self):
+        doubled = analyzer.calculate_entropy("helloworldhelloworld")
+        single = analyzer.calculate_entropy("helloworld")
+        self.assertAlmostEqual(doubled, single, places=1)
+
+    def test_helloworldhelloworld_is_weak(self):
+        score = analyzer.analyze("helloworldhelloworld", COMMON)["score"]
+        self.assertLess(score, 40)
 
 if __name__ == "__main__":
     unittest.main()

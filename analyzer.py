@@ -197,9 +197,25 @@ def check_personal_info(password, items):
     return (True, "No personal info found")
 
 
+def collapse_repeats(password):
+    """Remove repeated parts so they don't add fake entropy.
+
+    'helloworldhelloworld' -> 'helloworld'   (repeated chunk of 3+ characters)
+    'xaaaay'               -> 'xay'          (run of 3+ identical characters)
+    """
+    text = re.sub(r"(.{3,}?)\1+", r"\1", password, flags=re.IGNORECASE)
+    text = re.sub(r"(.)\1{2,}", r"\1", text, flags=re.IGNORECASE)
+    return text
+
+
 def calculate_entropy(password):
-    """Estimate entropy in bits: length x log2(charset size)."""
-    types = check_character_types(password)
+    """Estimate entropy in bits: length x log2(charset size).
+
+    Repeated parts are collapsed first, because an attacker only has to
+    guess a repeated part once.
+    """
+    effective = collapse_repeats(password)
+    types = check_character_types(effective)
     charset_size = 0
     if types["lowercase"]:
         charset_size += 26
@@ -212,7 +228,7 @@ def calculate_entropy(password):
 
     if charset_size == 0:
         return 0.0
-    return len(password) * math.log2(charset_size)
+    return len(effective) * math.log2(charset_size)
 
 
 def calculate_passphrase_entropy(words):
